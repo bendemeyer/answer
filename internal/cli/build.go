@@ -216,7 +216,7 @@ func downloadGoModFile(b *buildingMaterial) (err error) {
 				module = userMod
 			}
 		}
-		replacement := fmt.Sprint("%s=%s", baseRepo, module)
+		replacement := fmt.Sprintf("%s=%s", baseRepo, module)
 		err = b.newExecCmd("go", "mod", "edit", "-replace", replacement).Run()
 		if err != nil {
 			return err
