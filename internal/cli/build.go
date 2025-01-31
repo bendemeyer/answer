@@ -200,9 +200,23 @@ func createMainGoFile(b *buildingMaterial) (err error) {
 
 // downloadGoModFile run go mod commands to download dependencies
 func downloadGoModFile(b *buildingMaterial) (err error) {
-	// If user specify a module replacement, use it. Otherwise, use the latest version.
-	if len(b.answerModuleReplacement) > 0 {
-		replacement := fmt.Sprintf("%s=%s", "github.com/apache/answer", b.answerModuleReplacement)
+	userMod := b.answerModuleReplacement
+	baseRepo := "github.com/apache/answer"
+	// If user specified "stable", don't edit the module config
+	if strings.ToLower(userMod) != "stable" {
+		// default to building the revision of the current binary
+		module := fmt.Sprintf("%s@%s", baseRepo, b.originalAnswerInfo.Revision)
+		// If user specified a module replacement
+		if len(userMod) > 0 {
+			// If they specified "latest", use the current HEAD of the main branch
+			if strings.ToLower(userMod) == "latest" {
+				module = fmt.Sprintf("%s@main", baseRepo)
+			// Otherwise use exactly what the user specified
+			} else {
+				module = userMod
+			}
+		}
+		replacement := fmt.Sprint("%s=%s", baseRepo, module)
 		err = b.newExecCmd("go", "mod", "edit", "-replace", replacement).Run()
 		if err != nil {
 			return err
